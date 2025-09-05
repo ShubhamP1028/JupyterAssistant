@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Science Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .sidebar {
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100vh;
+            width: 400px;
+            background: rgba(36, 36, 36, 0.98);
+            backdrop-filter: blur(20px);
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+            border-left: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .feature-tag {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .content {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #FFFFF0;
+        }
+
+        .query-input {
+            width: 100%;
+            padding: 12px;
+            background: #FFFFF0;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+            resize: vertical;
+            min-height: 80px;
+            margin-bottom: 10px;
+        }
+
+        .query-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .code-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            min-height: 150px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            border: 1px solid #333;
+            margin-bottom: 10px;
+        }
+
+        .explanation {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.85rem;
+            color: #555;
+        }
+
+        .quick-examples {
+            margin-top: auto;
+        }
+
+        .examples-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .example-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .example-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
+        }
+
+        .example-text {
+            font-size: 0.8rem;
+            color: #666;
+            font-style: italic;
+        }
+
+        .copy-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: #218838;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .toggle-sidebar {
+            position: fixed;
+            right: 400px;
+            top: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: right 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            right: -400px;
+        }
+
+        .sidebar.collapsed + .toggle-sidebar {
+            right: 20px;
+        }
+
+        @media (max-width: 500px) {
+            .sidebar {
+                width: 100%;
+                right: -100%;
+            }
+            
+            .sidebar.open {
+                right: 0;
+            }
+            
+            .toggle-sidebar {
+                right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="header">
+            <h1 class="title">🤖 Data Science Assistant</h1>
+            <p class="subtitle">Your AI-powered companion</p>
+            <div class="features">
+                <div class="feature-tag">🐍 Code</div>
+                <div class="feature-tag">🧹 Cleaning</div>
+                <div class="feature-tag">📊 Viz</div>
+                <div class="feature-tag">🐛 Debug</div>
+                <div class="feature-tag">⚡ Optimize</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="input-section">
+                <h3 class="section-title">💬 Ask Your Question</h3>
+                <textarea 
+                    class="query-input" 
+                    placeholder="Example: How do I merge two DataFrames on a common column?"
+                    id="queryInput"
+                ></textarea>
+                <button class="generate-btn" onclick="generateCode()">
+                    Generate Code
+                </button>
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    Generating code...
+                </div>
+            </div>
+
+            <div class="output-section">
+                <h3 class="section-title">💻 Generated Code</h3>
+                <div class="code-output" id="codeOutput">
+# Your generated code will appear here...
+# Try asking a question like:
+# "How to remove duplicates from a DataFrame?"
+# "Create a scatter plot with matplotlib"
+# "Handle missing values in dataset"
+                </div>
+                <button class="copy-btn" onclick="copyCode()" id="copyBtn" style="display: none;">
+                    📋 Copy Code
+                </button>
+                <div class="explanation" id="explanation" style="display: none;">
+                    <strong>Explanation:</strong> <span id="explanationText"></span>
+                </div>
+            </div>
+
+            <div class="quick-examples">
+                <h3 class="section-title">⚡ Quick Examples</h3>
+                <div class="examples-grid">
+                    <div class="example-card" onclick="setExample('How do I merge two DataFrames df1 and df2 on column id?')">
+                        <div class="example-text">"Merge two DataFrames on column id"</div>
+                    </div>
+                    <div class="example-card" onclick="setExample('Remove duplicates from my DataFrame')">
+                        <div class="example-text">"Remove duplicates from DataFrame"</div>
+                    </div>
+                    <div class="example-card" onclick="setExample('Create a histogram of column age using matplotlib')">
+                        <div class="example-text">"Histogram of column age"</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="toggle-sidebar" onclick="toggleSidebar()">≡</button>
+
+    <script>
+        // Knowledge base for common data science operations
+        const knowledgeBase = {
+            'merge': {
+                code: `# Merge two DataFrames on a common column
+import pandas as pd
+
+# Inner join (default)
+result = pd.merge(df1, df2, on='id')
+
+# Left join
+result = pd.merge(df1, df2, on='id', how='left')
+
+# Outer join
+result = pd.merge(df1, df2, on='id', how='outer')`,
+                explanation: "pd.merge() combines DataFrames based on common columns. 'how' parameter controls the type of join (inner, left, right, outer)."
+            },
+            'duplicate': {
+                code: `# Remove duplicates from DataFrame
+import pandas as pd
+
+# Remove all duplicate rows
+df_clean = df.drop_duplicates()
+
+# Remove duplicates based on specific columns
+df_clean = df.drop_duplicates(subset=['column1', 'column2'])
+
+# Keep last occurrence instead of first
+df_clean = df.drop_duplicates(keep='last')`,
+                explanation: "drop_duplicates() removes duplicate rows. Use 'subset' to specify which columns to consider for duplicates."
+            },
+            'histogram': {
+                code: `# Create histogram using matplotlib
+import matplotlib.pyplot as plt
+import pandas as pd
+
+# Basic histogram
+plt.figure(figsize=(10, 6))
+plt.hist(df['age'], bins=30, alpha=0.7, color='skyblue')
+plt.title('Distribution of Age')
+plt.xlabel('Age')
+plt.ylabel('Frequency')
+plt.grid(True, alpha=0.3)
+plt.show()`,
+                explanation: "plt.hist() creates histograms to visualize data distribution. 'bins' controls the number of bars, 'alpha' sets transparency."
+            },
+            'missing': {
+                code: `# Handle missing values
+import pandas as pd
+import numpy as np
+
+# Check for missing values
+print(df.isnull().sum())
+
+# Fill missing values with mean
+df['column'] = df['column'].fillna(df['column'].mean())
+
+# Fill with forward fill
+df.fillna(method='ffill', inplace=True)
+
+# Drop rows with missing values
+df_clean = df.dropna()
+
+# Drop columns with too many missing values
+df_clean = df.dropna(axis=1, thresh=len(df)*0.5)`,
+                explanation: "Multiple strategies exist for handling missing data: fillna() for imputation, dropna() for removal. Choose based on your data and analysis needs."
+            },
+            'normalize': {
+                code: `# Normalize column between 0 and 1
+import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+
+# Method 1: Manual normalization
+df['salary_normalized'] = (df['salary'] - df['salary'].min()) / (df['salary'].max() - df['salary'].min())
+
+# Method 2: Using sklearn
+scaler = MinMaxScaler()
+df['salary_normalized'] = scaler.fit_transform(df[['salary']])
+
+# Method 3: Using pandas
+df['salary_normalized'] = df['salary'] / df['salary'].max()`,
+                explanation: "Min-Max normalization scales values to 0-1 range. Useful for machine learning algorithms sensitive to feature scales."
+            },
+            'keyerror': {
+                code: `# Fix KeyError: column_name
+import pandas as pd
+
+# Check available columns
+print(df.columns.tolist())
+
+# Check for extra spaces in column names
+print([f"'{col}'" for col in df.columns])
+
+# Strip whitespace from column names
+df.columns = df.columns.str.strip()
+
+# Rename columns if needed
+df.rename(columns={'old_name': 'new_name'}, inplace=True)
+
+# Safe column access
+if 'column_name' in df.columns:
+    result = df['column_name']
+else:
+    print("Column 'column_name' not found!")`,
+                explanation: "KeyError occurs when accessing non-existent columns. Always check column names, watch for typos, and handle whitespace issues."
+            }
+        };
+
+        function setExample(text) {
+            document.getElementById('queryInput').value = text;
+        }
+
+        function generateCode() {
+            const query = document.getElementById('queryInput').value.trim();
+            if (!query) {
+                alert('Please enter a question or query!');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.querySelector('.generate-btn').disabled = true;
+
+            // Simulate API call delay
+            setTimeout(() => {
+                const result = processQuery(query);
+                displayResult(result);
+                
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                document.querySelector('.generate-btn').disabled = false;
+            }, 1500);
+        }
+
+        function processQuery(query) {
+            const lowerQuery = query.toLowerCase();
+            
+            // Simple keyword matching for demo
+            if (lowerQuery.includes('merge') || lowerQuery.includes('join')) {
+                return knowledgeBase.merge;
+            } else if (lowerQuery.includes('duplicate')) {
+                return knowledgeBase.duplicate;
+            } else if (lowerQuery.includes('histogram') || lowerQuery.includes('plot')) {
+                return knowledgeBase.histogram;
+            } else if (lowerQuery.includes('missing') || lowerQuery.includes('null') || lowerQuery.includes('nan')) {
+                return knowledgeBase.missing;
+            } else if (lowerQuery.includes('normalize') || lowerQuery.includes('scale')) {
+                return knowledgeBase.normalize;
+            } else if (lowerQuery.includes('keyerror') || lowerQuery.includes('column')) {
+                return knowledgeBase.keyerror;
+            } else {
+                return {
+                    code: `# Generic data science template
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load your data
+df = pd.read_csv('your_data.csv')
+
+# Explore the data
+print(df.head())
+print(df.info())
+print(df.describe())
+
+# Your specific operation here
+# Please provide more specific details for targeted code generation`,
+                    explanation: "For more specific code generation, try including library names (pandas, numpy, matplotlib) and specific operations you want to perform."
+                };
+            }
+        }
+
+        function displayResult(result) {
+            document.getElementById('codeOutput').textContent = result.code;
+            document.getElementById('explanationText').textContent = result.explanation;
+            document.getElementById('explanation').style.display = 'block';
+            document.getElementById('copyBtn').style.display = 'inline-block';
+        }
+
+        function copyCode() {
+            const code = document.getElementById('codeOutput').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.getElementById('copyBtn');
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        // Enter key support
+        document.getElementById('queryInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                generateCode();
+            }
+        });
+    </script>
+</body>
+</html>

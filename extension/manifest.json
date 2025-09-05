@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Data Science Assistant for Jupyter",
+  "version": "1.0.0",
+  "description": "AI-powered retractable sidebar for Jupyter Notebooks",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "http://localhost:5050/*",
+    "http://127.0.0.1:5050/*",
+    "*://localhost:*/*",
+    "*://127.0.0.1:*/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://localhost:*/*",
+        "*://127.0.0.1:*/*",
+        "*://*.jupyter.org/*",
+        "*://*.jupyterhub.org/*",
+        "*://*/*notebooks*",
+        "*://*/*lab*"
+      ],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_end"
+    }
+  ],
+  "action": {
+    "default_title": "Data Science Assistant",
+    "default_popup": "popup.html"
+  }
+}
+

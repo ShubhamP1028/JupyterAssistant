@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Data Science Assistant</title>
+    <style>
+        body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; padding: 12px; width: 260px; }
+        h1 { font-size: 16px; margin: 0 0 8px; }
+        .hint { color: #555; font-size: 12px; }
+        button { margin-top: 10px; width: 100%; padding: 8px; border: none; border-radius: 6px; background: #667eea; color: #fff; cursor: pointer; }
+    </style>
+    <script>
+        function openJupyterHelp() {
+            chrome.tabs.create({ url: 'https://jupyter.org' });
+        }
+    </script>
+    </head>
+<body>
+    <h1>Data Science Assistant</h1>
+    <div class="hint">The sidebar will auto-inject on Jupyter pages.</div>
+    <button onclick="openJupyterHelp()">Jupyter Docs</button>
+</body>
+</html>
+

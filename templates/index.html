@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Science Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .sidebar {
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100vh;
+            width: 400px;
+            background: rgba(36, 36, 36, 0.98);
+            backdrop-filter: blur(20px);
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+            border-left: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .feature-tag {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .content {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #FFFFF0;
+        }
+
+        .query-input {
+            width: 100%;
+            padding: 12px;
+            background: #FFFFF0;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+            resize: vertical;
+            min-height: 80px;
+            margin-bottom: 10px;
+        }
+
+        .query-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .code-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            min-height: 150px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            border: 1px solid #333;
+            margin-bottom: 10px;
+        }
+
+        .explanation {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.85rem;
+            color: #555;
+        }
+
+        .quick-examples {
+            margin-top: auto;
+        }
+
+        .examples-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .example-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .example-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
+        }
+
+        .example-text {
+            font-size: 0.8rem;
+            color: #666;
+            font-style: italic;
+        }
+
+        .copy-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: #218838;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .toggle-sidebar {
+            position: fixed;
+            right: 400px;
+            top: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: right 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            right: -400px;
+        }
+
+        .sidebar.collapsed + .toggle-sidebar {
+            right: 20px;
+        }
+
+        @media (max-width: 500px) {
+            .sidebar {
+                width: 100%;
+                right: -100%;
+            }
+            
+            .sidebar.open {
+                right: 0;
+            }
+            
+            .toggle-sidebar {
+                right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="header" align="center">
+            <h1 class="title">🤖 Assistant</h1>
+            <p class="subtitle">Your AI-powered companion</p>
+            <div class="features" align="center">
+                <div class="feature-tag">       Cleaning</div>
+                <div class="feature-tag"> Viz</div>
+                <div class="feature-tag"> Debug</div>
+                <div class="feature-tag"> Optimize</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="input-section">
+                <h3 class="section-title">💬 Ask Your Question</h3>
+                <textarea 
+                    class="query-input" 
+                    placeholder="Example: How do I merge two DataFrames on a common column?"
+                    id="queryInput"
+                ></textarea>
+                <button class="generate-btn" id="generateBtn">
+                    Generate Code
+                </button>
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    Generating code...
+                </div>
+            </div>
+
+            <div class="output-section">
+                <h3 class="section-title">💻 Generated Code</h3>
+                <div class="code-output" id="codeOutput">
+# Your generated code will appear here...
+# Try asking a question like:
+# "How to remove duplicates from a DataFrame?"
+# "Create a scatter plot with matplotlib"
+# "Handle missing values in dataset"
+                </div>
+                <button class="copy-btn" onclick="copyCode()" id="copyBtn" style="display: none;">
+                    📋 Copy Code
+                </button>
+                <div class="explanation" id="explanation" style="display: none;">
+                    <strong>Explanation:</strong> <span id="explanationText"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="toggle-sidebar" onclick="toggleSidebar()">≡</button>
+
+    <script>
+        // Set up event listeners when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('generateBtn').addEventListener('click', generateCode);
+            
+            // Enter key support (Ctrl+Enter or Cmd+Enter)
+            document.getElementById('queryInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    generateCode();
+                }
+            });
+        });
+
+        function setExample(text) {
+            document.getElementById('queryInput').value = text;
+        }
+
+        async function generateCode() {
+            const query = document.getElementById('queryInput').value.trim();
+            if (!query) {
+                alert('Please enter a question or query!');
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('copyBtn').style.display = 'none';
+            document.getElementById('explanation').style.display = 'none';
+
+            try {
+                // Call Flask backend API
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question: query })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Display the result
+                document.getElementById('codeOutput').textContent = data.answer;
+                document.getElementById('explanationText').textContent = "Code generated by Gemini AI. See comments in code for explanations.";
+                document.getElementById('explanation').style.display = 'block';
+                document.getElementById('copyBtn').style.display = 'inline-block';
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('codeOutput').textContent = `# Error: ${error.message}\n# Please try again or check your network connection.`;
+                document.getElementById('explanationText').textContent = "An error occurred while generating the code.";
+                document.getElementById('explanation').style.display = 'block';
+            } finally {
+                // Hide loading state
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('generateBtn').disabled = false;
+            }
+        }
+
+        function copyCode() {
+            const code = document.getElementById('codeOutput').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.getElementById('copyBtn');
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+    </script>
+</body>
+</html>
