@@ -139,4 +139,4 @@ If you encounter any issues or have questions:
 
 ---
 
-**Made with ❤️ for the Data Science community**
+**Made with Curious Mind 😎😉**
